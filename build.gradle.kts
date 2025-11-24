@@ -1,48 +1,41 @@
 plugins {
-    java
-    application
+    id("java")
+    id("application")
+    id("org.springframework.boot") version "3.2.0"
+    id("io.spring.dependency-management") version "1.1.4"
 }
 
 group = "ie.ronanodea"
-version = "1.0-SNAPSHOT"
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
-}
+version = "1.0.0"
 
 repositories {
     mavenCentral()
 }
 
-dependencies {
-    // Testing
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.1")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.1")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.1")
-    testImplementation("org.junit.platform:junit-platform-suite-api:1.10.1")
-    testRuntimeOnly("org.junit.platform:junit-platform-suite-engine:1.10.1")
-
-    // Logging
-    implementation("org.slf4j:slf4j-api:2.0.9")
-    implementation("ch.qos.logback:logback-classic:1.4.14")
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
 }
 
-tasks.test {
-    useJUnitPlatform()
+dependencies {
+    // Spring Boot
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
     
-    // Enable preview features for Java 21
-    jvmArgs("--enable-preview")
+    // Existing dependencies
+    testImplementation(platform("org.junit:junit-bom:5.10.0"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
 }
 
 application {
     mainClass.set("ie.ronanodea.algobench.Main")
 }
 
-tasks.withType<JavaCompile> {
-    options.compilerArgs.add("--enable-preview")
+tasks.test {
+    useJUnitPlatform()
 }
 
-tasks.withType<JavaExec> {
-    jvmArgs("--enable-preview")
+tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
+    archiveFileName.set("algobench.jar")
 }
