@@ -1,5 +1,9 @@
 package ie.ronanodea.algobench;
 
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
 public class Main {
     public static void main(String[] args) {
         try {
@@ -9,25 +13,25 @@ public class Main {
                 return;
             }
             
-            // Parse command line arguments
-            BenchmarkConfig config;
+            // If arguments provided, run CLI mode
             if (args.length > 0) {
-                config = CommandLineParser.parseArgs(args);
+                // Parse command line arguments
+                BenchmarkConfig config = CommandLineParser.parseArgs(args);
                 if (config == null) {
                     return; // Help was displayed
                 }
                 CommandLineParser.printConfiguration(config);
+                
+                // Run benchmarks with the configured settings
+                BenchmarkRunner runner = new BenchmarkRunner(config);
+                runner.runAllBenchmarks();
             } else {
-                // Use default configuration if no arguments provided
-                config = BenchmarkConfig.getDefault();
-                System.out.println("Using default configuration:");
-                CommandLineParser.printConfiguration(config);
+                // No arguments - start web server
+                System.out.println("\n🚀 Starting Algorithm Benchmark Web Server...");
+                SpringApplication.run(Main.class, args);
+                System.out.println("📊 Server running at http://localhost:8080");
+                System.out.println("💚 Health check: http://localhost:8080/api/health\n");
             }
-            
-            // Run benchmarks with the configured settings
-            BenchmarkRunner runner = new BenchmarkRunner(config);
-            runner.runAllBenchmarks();
-            
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());
             CommandLineParser.printHelp();
