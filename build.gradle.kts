@@ -1,8 +1,8 @@
 plugins {
     id("java")
     id("application")
-    id("org.springframework.boot") version "3.2.0"
-    id("io.spring.dependency-management") version "1.1.4"
+    id("org.springframework.boot").version("3.5.8")
+    id("io.spring.dependency-management").version("1.1.4")
 }
 
 group = "ie.ronanodea"
@@ -19,12 +19,10 @@ java {
 }
 
 dependencies {
-    // Spring Boot
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     
-    // Existing dependencies
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
 
@@ -32,7 +30,7 @@ application {
     mainClass.set("ie.ronanodea.algobench.Main")
 }
 
-tasks.test {
+tasks.getByName<Test>("test") {
     useJUnitPlatform()
 }
 
