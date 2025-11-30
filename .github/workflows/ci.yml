@@ -72,13 +72,13 @@ jobs:
 
     - name: Run Trivy vulnerability scanner (SARIF)
       uses: aquasecurity/trivy-action@0.28.0
+      continue-on-error: true
       with:
         image-ref: '${{ steps.image.outputs.name }}'
         format: 'sarif'
         output: '${{ github.workspace }}/trivy-results.sarif'
         severity: 'CRITICAL,HIGH'
         ignore-unfixed: true
-        exit-code: '0'
 
     - name: Upload Trivy results to GitHub Security tab
       uses: github/codeql-action/upload-sarif@v4
@@ -86,7 +86,7 @@ jobs:
       with:
         sarif_file: '${{ github.workspace }}/trivy-results.sarif'
 
-    - name: Run Trivy vulnerability scanner (Table)
+    - name: Run Trivy vulnerability scanner (Table - Quality Gate)
       uses: aquasecurity/trivy-action@0.28.0
       with:
         image-ref: '${{ steps.image.outputs.name }}'
