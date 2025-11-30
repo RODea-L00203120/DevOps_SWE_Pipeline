@@ -1,26 +1,19 @@
-resource "aws_security_group" "app" {
-  name        = "algobench-sg"
-  description = "Security group for algobench"
-  vpc_id      = data.aws_vpc.default.id
+variable "aws_region" {
+  type    = string
+  default = "us-east-1"
+}
 
-  ingress {
-    from_port   = var.app_port
-    to_port     = var.app_port
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+variable "instance_type" {
+  type    = string
+  default = "t2.micro"
+}
 
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+variable "app_port" {
+  type    = number
+  default = 8080
+}
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+variable "docker_image" {
+  type    = string
+  default = "ghcr.io/rodea-l00203120/devops_swe_pipeline:latest"
 }
