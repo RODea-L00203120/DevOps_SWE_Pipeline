@@ -1,221 +1,195 @@
-# AlgoBench
+# AlgoBench DevOps Pipeline
 
-This repository demonstrates a performance benchmarking application for comparing various sorting algorithms across different input sizes and data distributions, built using Java and Gradle.
+This repository demonstrates a demonstrative DevOps Pipeline incorporating modern tooling and practices - it incorporates a performance benchmarking application for comparing various sorting algorithms across different input sizes and data distributions. 
 
+## Technologies
+
+### Application Stack
+- **Language:** Java 21 (Eclipse Temurin)
+- **Framework:** Spring Boot 3.5.8
+- **Build Tool:** Gradle 8.12.1
+- **Testing:** JUnit 5.12.2
+
+### DevOps Tools
+- **Version Control:** Git 2.43.0
+- **CI/CD:** GitHub Actions
+- **Containerization:** 
+  - Docker 28.5.1
+  - Docker Compose v2.40.2
+- **Container Registry:** GitHub Container Registry (GHCR)
+- **Security Scanning:** Trivy Action 0.33.1 (SARIF format)
+
+### Infrastructure
+- **Cloud Platform:** AWS
+  - EC2: t3.micro (Amazon Linux 2023)
+  - Region: us-east-1
+- **IaC:** Terraform 1.0.0+ (AWS Provider 6.23.0)
+- **AWS CLI:** 2.31.18
+
+### Monitoring
+- **Metrics:** Prometheus (latest fetched)
+- **Visualization:** Grafana (latest fetched)
+
+
+
+## Architecture
+
+``` mermaid
+flowchart TB
+    subgraph GH["GitHub Repository"]
+        Push["Push to main"]
+        
+        subgraph CI["CI Pipeline"]
+            Build["Build<br/>(Gradle)"]
+            Test["Test<br/>(JUnit)"]
+            Scan["Security Scan<br/>(Trivy)"]
+            Docker["Docker Build<br/>& Push"]
+            Build --> Test --> Scan --> Docker
+        end
+        
+        subgraph Deploy["Deploy Pipeline"]
+            Init["Terraform Init"]
+            Plan["Terraform Plan"]
+            Apply["Terraform Apply"]
+            Init --> Plan --> Apply
+        end
+    end
+    
+    subgraph GHCR["GitHub Container Registry"]
+        Image["Docker Image"]
+    end
+    
+    subgraph AWS["AWS EC2"]
+        subgraph Containers["Docker Containers"]
+            App["Algobench<br/>:8080"]
+            Prom["Prometheus<br/>:9090"]
+            Graf["Grafana<br/>:3000"]
+        end
+    end
+    
+    Push --> Build
+    Push --> Init
+    Docker --> Image
+    Image -->|"docker pull"| App
+    Apply -->|"provisions"| AWS
+    App --> Prom --> Graf
+
+    style GH fill:#f5f5f5,stroke:#333
+    style CI fill:#dbeafe,stroke:#3b82f6
+    style Deploy fill:#fef3c7,stroke:#f59e0b
+    style GHCR fill:#e9d5ff,stroke:#9333ea
+    style AWS fill:#dcfce7,stroke:#22c55e
+    style Containers fill:#bbf7d0,stroke:#22c55e
+```
 ## Project Structure
 
-The project follows the standard Gradle directory structure:
+The project follows following structure:
 
 ```
 AlgoBench/
-├── src/
-│   ├── main/
-│   │   └── java/ 
-│   │       └── ie/
-│   │           └── ronanodea/
-│   │               └── algobench/
-│   │                   ├── BenchmarkConfig.java
-│   │                   ├── BenchmarkRunner.java
-│   │                   ├── Benchmarker.java
-│   │                   ├── BenchmarkResultsPrinter.java
-│   │                   ├── BubbleSort.java
-│   │                   ├── BucketSort.java
-│   │                   ├── CommandLineParser.java
-│   │                   ├── CSVExporter.java
-│   │                   ├── InsertionSort.java
-│   │                   ├── Main.java
-│   │                   ├── MergeSort.java
-│   │                   └── SelectionSort.java
-│   └── test/
-│       └── java/  
-│           └── ie/
-│               └── ronanodea/
-│                   └── algobench/
-│                       ├── BubbleSortTest.java
-│                       ├── BucketSortTest.java
-│                       ├── CommandLineParserTest.java
-│                       ├── InsertionSortTest.java
-│                       ├── MergeSortTest.java
-│                       └── SelectionSortTest.java
-├── build.gradle 
-├── gradlew
-├── gradlew.bat
-└── gradle/
-    └── wrapper/
-        ├── gradle-wrapper.jar
-        └── gradle-wrapper.properties
+|   .dockerignore
+|   .gitattributes
+|   .gitignore
+|   build.gradle.kts
+|   docker-compose.yml
+|   Dockerfile
+|   gradle.properties
+|   gradlew
+|   gradlew.bat
+|   LICENSE
+|   README.md
+|   settings.gradle
+|
++---.devcontainer
+|       devcontainer.json
+|
++---.github
+|   \---workflows
+|           ci.yml
+|           deploy.yml
+|
++---gradle
+|   |   libs.versions.toml
+|   |
+|   \---wrapper
+|           gradle-wrapper.jar
+|           gradle-wrapper.properties
+|
++---monitoring
+|       docker-compose.yml
+|       prometheus.yml
+|
++---src
+|   +---main
+|   |   +---java
+|   |   |   \---ie
+|   |   |       \---ronanodea
+|   |   |           \---algobench
+|   |   |               |   BenchmarkConfig.java
+|   |   |               |   Benchmarker.java
+|   |   |               |   BenchmarkResultsPrinter.java
+|   |   |               |   BenchmarkRunner.java
+|   |   |               |   BubbleSort.java
+|   |   |               |   BucketSort.java
+|   |   |               |   CommandLineParser.java
+|   |   |               |   CSVExporter.java
+|   |   |               |   InsertionSort.java
+|   |   |               |   Main.java
+|   |   |               |   MergeSort.java
+|   |   |               |   SelectionSort.java
+|   |   |               |
+|   |   |               \---controller
+|   |   |                       BenchmarkController.java
+|   |   |
+|   |   \---resources
+|   |       |   application.properties
+|   |       |
+|   |       \---static
+|   |               index.html
+|   |
+|   \---test
+|       \---java
+|           \---ie
+|               \---ronanodea
+|                   \---algobench
+|                           BubbleSortTest.java
+|                           BucketSortTest.java
+|                           CommandLineParserTest.java
+|                           InsertationSortTest.java
+|                           MergeSortTest.java
+|                           SelectionSortTest.java
+|
+\---terraform
+        .gitignore
+        ec2.tf
+        main.tf
+        outputs.tf
+        security-group.tf
+        user-data.sh
+        variables.tf
 ```
+_______________________________________
 
-## Implemented Algorithms
+## Pipeline Phase 1: Version Control
 
-- **Bubble Sort** - Simple comparison-based algorithm with O(n²) average complexity
-- **Selection Sort** - In-place comparison sort with O(n²) complexity in all cases
-- **Insertion Sort** - Simple sorting algorithm that builds the sorted array one item at a time
-- **Merge Sort** - Divide and conquer algorithm with O(n log n) complexity
-- **Bucket Sort** - Distribution sort that distributes elements into buckets, then sorts each bucket
+**Implementation:**
+- Cloned my original Algobench repo: https://github.com/RonanChrisODea/Algorithm-Benchmarking-Project to Pipeline repository
+- Created GitHub repository with proper `.gitignore` for Java/Gradle projects
+- Implemented feature branch workflow
 
-## Prerequisites
+## Pipeline Phase 2: Application Finalisation
 
-- Java Development Kit (JDK) 17 or later: This project is set up to use JDK 17+. You can download a JDK from Adoptium or your preferred JDK vendor. Make sure java and javac are on your PATH.
-- Git: Used to clone the project.
+https://github.com/RODea-L00203120/DevOps_SWE_Pipeline/tree/feature/rest-api
 
-## Cloning the Repository
+Added a Spring Boot REST API, providing:
+- Web-based landing page
+- REST endpoints for algorithm operations
+- Actuator endpoints for health checks and metrics
+- Prometheus metrics endpoint for monitoring         integration
 
-To get a copy of this project on your local machine, open a terminal (or Git Bash on Windows) and run:
+## Pipeline Phase 3: Automated Builds & Testing
 
-```bash
-git clone https://github.com/RonanChrisODea/Algorithm-Benchmarking-Project.git
-cd Algorithm-Benchmarking-Project
-```
+- Gradle build system
+- JUnit 5 test framework
 
-## Building and Running the Application
-
-This project uses the Gradle Wrapper. You do not need to install Gradle separately. The wrapper will automatically download and use the correct version of Gradle for this project.
-
-### Using the Terminal (Recommended)
-
-1. Navigate to the project root: Open a terminal and use the `cd` command to navigate to the AlgoBench directory (the directory containing gradlew.bat).
-
-2. Build and Run: Execute the following command:
-
-   **Windows:**
-   ```
-   .\gradlew.bat clean build run
-   ```
-
-   **Linux/macOS:**
-   ```
-   ./gradlew clean build run
-   ```
-
-3. To run with specific arguments:
-
-   **Windows:**
-   ```
-   .\gradlew.bat run --args="-r 5 -min -100 -max 100 -s 100,1000,10000"
-   ```
-
-   **Linux/macOS:**
-   ```
-   ./gradlew run --args="-r 5 -min -100 -max 100 -s 100,1000,10000"
-   ```
-
-### Command Line Arguments
-
-```
-Options:
-  -r, --repetitions <num>  Number of repetitions for each benchmark (default: 10)
-  -min, --min-value <num>  Minimum value for random arrays (default: 0)
-  -max, --max-value <num>  Maximum value for random arrays (default: 100)
-  -s, --sizes <s1,s2,...>  Comma-separated list of array sizes to benchmark
-  -h, --help               Display this help message
-```
-
-## Running Tests
-
-Run all tests using the Gradle test task:
-
-**Windows:**
-```
-.\gradlew.bat test
-```
-
-**Linux/macOS:**
-```
-./gradlew test
-```
-
-This will compile the code, run all the unit tests, and generate a test report.
-
-View the Test Report: After the tests run, open the HTML test report in your browser, found at the following directories:
-
-- Windows: `.\build\reports\tests\test\index.html`
-- Linux/macOS: `build/reports/tests/test/index.html`
-
-<!-- Removed Javadoc section as it hasn't been implemented yet -->
-
-## Using an IDE (IntelliJ IDEA, Eclipse, etc.)
-
-### Import the Project:
-
-- **IntelliJ IDEA**: Choose "Open" and select the build.gradle file or the project's root directory. IntelliJ IDEA will automatically detect the Gradle project.
-- **Eclipse**: Choose "File" -> "Import..." -> "Gradle" -> "Existing Gradle Project". Select the project's root directory.
-- **Other IDEs**: Use their appropriate "Import Project" feature for Gradle projects.
-
-### Run the Application:
-
-- **IntelliJ IDEA**: Right-click on the Main.java file and select "Run 'Main.main()'".
-- **Eclipse**: Right-click on the Main.java file, go to "Run As" -> "Java Application".
-
-### Run Tests:
-
-- **IntelliJ IDEA**: Right-click on the src/test directory in the Project tool window and choose "Run 'All Tests'". You can also right-click on individual test classes or methods and run them.
-- **Eclipse**: Right-click on the project, go to "Run As" -> "JUnit Test". You can also configure run configurations for specific tests.
-
-## Example Output
-
-```
-Starting benchmarks with multithreading...
-
-Array Size:   10           100          500          1000         2000         5000         10000        20000        
-Bubble:       0.003940     0.039781     0.955040     3.771350     15.062731    93.688522    374.619005   1496.287141
-Selection:    0.002193     0.022174     0.537114     1.825235     7.522413     46.926317    187.712514   750.840124
-Insertion:    0.001846     0.018670     0.453048     1.731123     6.638221     41.489542    166.017842   664.035219
-Merge:        0.003081     0.028914     0.172844     0.390219     0.872182     2.391001     5.103912     11.242184
-Bucket:       0.006721     0.041522     0.204717     0.421093     0.902381     2.481824     5.302183     11.592918
-
-Algorithm completion times:
-Merge: 3.71 seconds
-Bucket: 3.83 seconds
-Insertion: 54.61 seconds
-Selection: 62.81 seconds
-Bubble: 105.33 seconds
-
-Real world elapsed time: 105.33s
-
-Results exported to: benchmark_results_20250417_120145.csv
-```
-
-## Performance Characteristics
-
-| Algorithm     | Best Case    | Average Case | Worst Case   | Space Complexity | Stable |
-|---------------|--------------|--------------|--------------|------------------|--------|
-| Bubble Sort   | O(n)         | O(n²)        | O(n²)        | O(1)             | Yes    |
-| Selection Sort| O(n²)        | O(n²)        | O(n²)        | O(1)             | No     |
-| Insertion Sort| O(n)         | O(n²)        | O(n²)        | O(1)             | Yes    |
-| Merge Sort    | O(n log n)   | O(n log n)   | O(n log n)   | O(n)             | Yes    |
-| Bucket Sort   | O(n+k)       | O(n+k)       | O(n²)        | O(n+k)           | Yes    |
-
-## Features
-
-- **Configurable Benchmarks** - Customize array sizes, number of repetitions, and value ranges
-- **Multithreaded Execution** - Parallel benchmarking for faster results
-- **Statistical Analysis** - Averages over multiple runs for reliable measurements
-- **CSV Export** - Exports results to CSV files for further analysis or visualization
-- **Command-Line Interface** - Run benchmarks with custom parameters via CLI
-
-## Cleaning the Build
-
-To remove all generated files (compiled classes, test reports, etc.), run:
-
-**Windows:**
-```
-.\gradlew.bat clean
-```
-
-**Linux/macOS:**
-```
-./gradlew clean
-```
-
-## Future Improvements
-
-- Add more sorting algorithms (QuickSort, HeapSort, RadixSort, etc.)
-- Implement visualization of sorting algorithms and benchmark results
-- Add memory usage measurements
-- Improve statistical analysis with standard deviation and confidence intervals
-- Support for different data distributions (already sorted, reversed, nearly sorted)
-
-## Author
-
-Ronan O'Dea
+To continue
