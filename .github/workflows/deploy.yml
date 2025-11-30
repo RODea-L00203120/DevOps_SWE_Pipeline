@@ -35,8 +35,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - run: terraform init
-      - run: terraform plan -var="docker_image=ghcr.io/rodea-l00203120/devops_swe_pipeline:${{ github.sha }}" -out=tfplan
-
+      - run: terraform plan -var="docker_image=ghcr.io/rodea-l00203120/devops_swe_pipeline:latest" -out=tfplan
       - name: Apply
         if: github.event.inputs.action != 'destroy'
         run: terraform apply -auto-approve tfplan
