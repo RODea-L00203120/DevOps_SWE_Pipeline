@@ -4,10 +4,10 @@ resource "aws_instance" "app" {
   subnet_id              = data.aws_subnets.default.ids[0]
   vpc_security_group_ids = [aws_security_group.app.id]
 
-  user_data = base64encode(templatefile("${path.module}/user-data.sh", {
+  user_data = templatefile("${path.module}/user-data.sh", {
     docker_image = var.docker_image
     app_port     = var.app_port
-  }))
+  })
 
   tags = {
     Name = "algobench-server"
