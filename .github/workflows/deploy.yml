@@ -1,0 +1,46 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      action:
+        type: choice
+        options: [plan, apply, destroy]
+        default: apply
+
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - run: terraform init
+      - run: terraform plan -var="docker_image=ghcr.io/rodea-l00203120/devops_swe_pipeline:${{ github.sha }}" -out=tfplan
+
+      - name: Apply
+        if: github.event.inputs.action != 'destroy'
+        run: terraform apply -auto-approve tfplan
+
+      - name: Destroy
+        if: github.event.inputs.action == 'destroy'
+        run: terraform destroy -var="docker_image=ghcr.io/rodea-l00203120/devops_swe_pipeline:latest" -auto-approve
