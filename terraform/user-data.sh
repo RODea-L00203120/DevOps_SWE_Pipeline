@@ -1,26 +1,32 @@
 #!/bin/bash
 set -e
+
 DOCKER_IMAGE="${docker_image}"
 APP_PORT="${app_port}"
+
+# Update system and install Docker
 dnf update -y
 dnf install -y docker
 systemctl start docker
 systemctl enable docker
-docker pull "$DOCKER_IMAGE"
-docker run -d --name algobench --restart unless-stopped -p "$APP_PORT:$APP_PORT" "$DOCKER_IMAGE"
 
 # Wait for Docker to be ready
 sleep 10
 
-# Start the application container
-docker pull ${docker_image}
+# Pull and start the application container
+docker pull "$DOCKER_IMAGE"
 docker stop algobench 2>/dev/null || true
 docker rm algobench 2>/dev/null || true
 docker run -d \
   --name algobench \
   --restart unless-stopped \
-  -p ${app_port}:8080 \
-  ${docker_image}
+  -p "$APP_PORT:8080" \
+  "$DOCKER_IMAGE"
+
+# Install Docker Compose
+echo "Installing Docker Compose..."
+curl -L "https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
 
 # Setup monitoring stack
 echo "Setting up monitoring..."
@@ -72,6 +78,6 @@ scrape_configs:
 EOF
 
 # Start monitoring stack
-docker compose up -d
+/usr/local/bin/docker-compose up -d
 
 echo "Monitoring setup complete!"
