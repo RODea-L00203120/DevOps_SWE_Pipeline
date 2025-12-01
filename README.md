@@ -181,7 +181,7 @@ Prerequisites
 - AWS Account (for cloud deployment)
 - GitHub Account (for CI/CD)
 
-## Option 1: Dev Container (Recommended)
+## Option 1: Dev Container in VSCode (Recommended)
 ```bash
 # Clone repository
 git clone https://github.com/RODea-L00203120/DevOps_SWE_Pipeline.git
@@ -194,15 +194,16 @@ code .
 # Container auto-builds on startup via postCreateCommand
 ```
 
-What you get:
+What you get in container:
 
-Java 21 (Eclipse Temurin)
-Gradle Wrapper pre-configured
-Docker-in-Docker
-GitHub CLI
-AWS CLI
-Terraform
-All dependencies installed
+- Java 21 (Eclipse Temurin)
+- Gradle Wrapper pre-configured
+- Docker-in-Docker
+- GitHub CLI
+- AWS CLI
+- Terraform
+- VSCode extensions
+
 
 ## Option 2: Local Development
 ```bash
@@ -220,7 +221,7 @@ cd DevOps_SWE_Pipeline
 http://localhost:8080
 ```
 
-### Deploy to AWS
+## Deploy to AWS
 
 **1. Configure GitHub Secrets** (Settings → Secrets and variables → Actions):
 ```
