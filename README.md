@@ -2,36 +2,6 @@
 
 This repository demonstrates a demonstrative DevOps Pipeline incorporating modern tooling and practices - it incorporates a performance benchmarking application for comparing various sorting algorithms across different input sizes and data distributions. 
 
-## Technologies
-
-### Application Stack
-- **Language:** Java 21 (Eclipse Temurin)
-- **Framework:** Spring Boot 3.5.8
-- **Build Tool:** Gradle 8.12.1
-- **Testing:** JUnit 5.12.2
-
-### DevOps Tools
-- **Version Control:** Git 2.43.0
-- **CI/CD:** GitHub Actions
-- **Containerization:** 
-  - Docker 28.5.1
-  - Docker Compose v2.40.2
-- **Container Registry:** GitHub Container Registry (GHCR)
-- **Security Scanning:** Trivy Action 0.33.1 (SARIF format)
-
-### Infrastructure
-- **Cloud Platform:** AWS
-  - EC2: t3.micro (Amazon Linux 2023)
-  - Region: us-east-1
-- **IaC:** Terraform 1.0.0+ (AWS Provider 6.23.0)
-- **AWS CLI:** 2.31.18
-
-### Monitoring
-- **Metrics:** Prometheus (latest fetched)
-- **Visualization:** Grafana (latest fetched)
-
-
-
 ## Architecture
 
 ``` mermaid
@@ -81,6 +51,38 @@ flowchart TB
     style AWS fill:#dcfce7,stroke:#22c55e
     style Containers fill:#bbf7d0,stroke:#22c55e
 ```
+
+## Technologies
+
+### Application Stack
+- **Language:** Java 21 (Eclipse Temurin)
+- **Framework:** Spring Boot 3.5.8
+- **Build Tool:** Gradle 8.12.1
+- **Testing:** JUnit 5.12.2
+
+### DevOps Tools
+- **Version Control:** Git 2.43.0
+- **CI/CD:** GitHub Actions
+- **Containerization:** 
+  - Docker 28.5.1
+  - Docker Compose v2.40.2
+- **Container Registry:** GitHub Container Registry (GHCR)
+- **Security Scanning:** Trivy Action 0.33.1 (SARIF format)
+
+### Infrastructure
+- **Cloud Platform:** AWS
+  - EC2: t3.micro (Amazon Linux 2023)
+  - Region: us-east-1
+- **IaC:** Terraform 1.0.0+ (AWS Provider 6.23.0)
+- **AWS CLI:** 2.31.18
+
+### Monitoring
+- **Metrics:** Prometheus (latest fetched)
+- **Visualization:** Grafana (latest fetched)
+
+
+
+
 ## Project Structure
 
 The project follows following structure:
