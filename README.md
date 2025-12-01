@@ -1,6 +1,7 @@
 # AlgoBench DevOps Pipeline
 
-This repository demonstrates a demonstrative DevOps Pipeline incorporating modern tooling and practices - it incorporates a performance benchmarking application for comparing various sorting algorithms across different input sizes and data distributions. 
+This repository demonstrates a demonstrative Dev
+Ops Pipeline incorporating modern tooling and practices - it incorporates a performance benchmarking application for comparing various sorting algorithms across different input sizes and data distributions. 
 
 ## Architecture
 
@@ -172,7 +173,190 @@ AlgoBench/
 ```
 _______________________________________
 
-## Pipeline Phase 1: Version Control & Dev Container
+## Quick Start
+Prerequisites
+
+- Git 2.43.0+
+- Docker 28.5.1+
+- AWS Account (for cloud deployment)
+- GitHub Account (for CI/CD)
+
+## Option 1: Dev Container (Recommended)
+```bash
+# Clone repository
+git clone https://github.com/RODea-L00203120/DevOps_SWE_Pipeline.git
+cd DevOps_SWE_Pipeline
+
+### Open in VS Code
+code .
+
+# When prompted, click "Reopen in Container"
+# Container auto-builds on startup via postCreateCommand
+```
+
+What you get:
+
+Java 21 (Eclipse Temurin)
+Gradle Wrapper pre-configured
+Docker-in-Docker
+GitHub CLI
+AWS CLI
+Terraform
+All dependencies installed
+
+## Option 2: Local Development
+```bash
+# Clone repository
+git clone https://github.com/RODea-L00203120/DevOps_SWE_Pipeline.git
+cd DevOps_SWE_Pipeline
+
+# Build
+./gradlew build
+
+# Run locally
+./gradlew bootRun
+
+# Access application
+http://localhost:8080
+```
+
+### Deploy to AWS
+
+**1. Configure GitHub Secrets** (Settings → Secrets and variables → Actions):
+```
+AWS_ACCESS_KEY_ID=<your-key>
+AWS_SECRET_ACCESS_KEY=<your-secret>
+AWS_REGION=us-east-1
+```
+
+**2. Build Pipeline (Automatic):**
+
+The CI pipeline runs automatically when you push to main:
+
+```bash
+git push origin main
+```
+This will:
+
+Build and test the application
+Run security scans
+Push Docker image to GitHub Container Registry
+
+**3. Deploy to AWS (Manual):**
+
+Note: Deployment to AWS infrastructure is manual only for safety and cost control. The CI pipeline prepares the container, but you control when infrastructure is provisioned.
+
+Via GitHub Actions UI:
+
+Navigate to: Actions → Deploy → Run workflow
+
+Select action from dropdown:
+- plan - Preview infrastructure changes (no modifications)
+- apply - Deploy/update infrastructure
+- destroy - Tear down all AWS resources
+
+
+
+**4. Get Your Application URL:**
+
+Via GitHub Actions:
+
+Navigate to: Actions → Deploy → Latest workflow run
+Scroll to bottom of logs for Terraform outputs
+
+or 
+
+Via Terraform CLI (in dev container):
+```bash
+cd terraform
+terraform output application_url
+terraform output public_ip
+```
+
+**Expected Output:**
+```
+application_url = "http://<YOUR_IP>:8080"
+public_ip = "<YOUR_IP>"
+```
+
+**5. Access Deployed Services:**
+
+Application: http://<YOUR_IP>:8080
+
+Prometheus: http://<YOUR_IP>:9090
+
+Grafana: http://<YOUR_IP>:3000 (admin/admin)
+
+**6. View GitHub Actions Pipeline Artifacts**
+
+- Navigate to: Actions → CI Pipeline → Select a workflow run
+- Scroll to Artifacts section at bottom of page
+
+Available Artifacts:
+
+application-jar - Compiled Spring Boot JAR file
+
+test-results - JUnit test reports (HTML format)
+
+trivy-sarif-report - Trivy security scan results (SARIF format)
+
+## Additional local running options
+Note: The CI Github Actions workflow runs the majority of these commands automatically however should be developing locally you can use:
+
+Test the Pipeline
+```bash
+# Run tests
+./gradlew test
+```
+
+### Build Docker image locally
+```bash
+docker build -t algobench:test .
+```
+### Run container
+```bash
+docker run -p 8080:8080 algobench:test
+```
+
+### Test endpoints
+```bash
+curl http://localhost:8080/actuator/health
+curl http://localhost:8080/api/benchmark/bubblesort?size=100
+```
+
+### Verify Infrastructure (Dev Container)
+```bash
+# Validate Terraform configuration
+cd terraform
+terraform init
+terraform validate
+terraform plan
+```
+### Check AWS deployment status
+```bash
+aws ec2 describe-instances --filters "Name=tag:Name,Values=algobench-instance"
+```
+
+
+## Destroy Resources
+Via GitHub Actions UI:
+
+Navigate to: Actions → Deploy → Run workflow
+Select destroy from action dropdown
+Click Run workflow
+
+Via Terraform CLI (in dev container):
+```bash
+cd terraform
+terraform destroy -var="docker_image=ghcr.io/rodea-l00203120/devops_swe_pipeline:latest"
+```
+
+__________________________________
+
+
+
+
+## Pipeline Development Phase 1: Version Control & Dev Container
 
 **Implementation:**
 
