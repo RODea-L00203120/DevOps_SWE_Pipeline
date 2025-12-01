@@ -300,7 +300,6 @@ https://github.com/aquasecurity/trivy-action
 
 ![alt text](screenshots/image.png)
 
-- Reports uploaded to GitHub security tab
 
 ## Phase 5: Application Containerisation for Deployment
 
@@ -328,15 +327,13 @@ https://github.com/RODea-L00203120/DevOps_SWE_Pipeline/blob/main/.github/workflo
 name: Deploy
 
 on:
-  workflow_run:
-    workflows: ["CI Pipeline"]
-    types: [completed]
-    branches: [main]
   workflow_dispatch:
     inputs:
       action:
+        description: 'Terraform action to perform'
         type: choice
         options: [plan, apply, destroy]
+        required: true
         default: apply
 
 env:
@@ -345,7 +342,6 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     defaults:
       run:
         working-directory: terraform
@@ -361,15 +357,26 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - run: terraform init
-      - run: terraform plan -var="docker_image=ghcr.io/rodea-l00203120/devops_swe_pipeline:latest" -out=tfplan
-      - name: Apply
-        if: github.event.inputs.action != 'destroy'
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Plan
+        run: terraform plan -var="docker_image=ghcr.io/rodea-l00203120/devops_swe_pipeline:latest" -out=tfplan
+
+      - name: Terraform Apply
+        if: github.event.inputs.action == 'apply'
         run: terraform apply -auto-approve tfplan
 
-      - name: Destroy
+      - name: Terraform Destroy
         if: github.event.inputs.action == 'destroy'
         run: terraform destroy -var="docker_image=ghcr.io/rodea-l00203120/devops_swe_pipeline:latest" -auto-approve
+
+      - name: Output Infrastructure Details
+        if: github.event.inputs.action == 'apply'
+        run: |
+          echo "## Deployment Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          terraform output -json | jq -r 'to_entries[] | "- **\(.key)**: \(.value.value)"' >> $GITHUB_STEP_SUMMARY
 ```
 
 Secrets configured using GitHub GUI
