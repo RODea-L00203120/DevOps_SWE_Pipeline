@@ -1,221 +1,760 @@
-# AlgoBench
+# AlgoBench DevOps Pipeline
 
-This repository demonstrates a performance benchmarking application for comparing various sorting algorithms across different input sizes and data distributions, built using Java and Gradle.
+This repository demonstrates a demonstrative Dev
+Ops Pipeline incorporating modern tooling and practices - it incorporates a performance benchmarking application for comparing various sorting algorithms across different input sizes and data distributions. 
+
+## Architecture
+
+``` mermaid
+flowchart TB
+    subgraph GH["GitHub Repository"]
+        Push["Push to main"]
+        
+        subgraph CI["CI Pipeline"]
+            Build["Build<br/>(Gradle)"]
+            Test["Test<br/>(JUnit)"]
+            Scan["Security Scan<br/>(Trivy)"]
+            Docker["Docker Build<br/>& Push"]
+            Build --> Test --> Scan --> Docker
+        end
+        
+        subgraph Deploy["Deploy Pipeline"]
+            Init["Terraform Init"]
+            Plan["Terraform Plan"]
+            Apply["Terraform Apply"]
+            Init --> Plan --> Apply
+        end
+    end
+    
+    subgraph GHCR["GitHub Container Registry"]
+        Image["Docker Image"]
+    end
+    
+    subgraph AWS["AWS EC2"]
+        subgraph Containers["Docker Containers"]
+            App["Algobench<br/>:8080"]
+            Prom["Prometheus<br/>:9090"]
+            Graf["Grafana<br/>:3000"]
+        end
+    end
+    
+    Push --> Build
+    Push --> Init
+    Docker --> Image
+    Image -->|"docker pull"| App
+    Apply -->|"provisions"| AWS
+    App --> Prom --> Graf
+
+    style GH fill:#f5f5f5,stroke:#333
+    style CI fill:#dbeafe,stroke:#3b82f6
+    style Deploy fill:#fef3c7,stroke:#f59e0b
+    style GHCR fill:#e9d5ff,stroke:#9333ea
+    style AWS fill:#dcfce7,stroke:#22c55e
+    style Containers fill:#bbf7d0,stroke:#22c55e
+```
+
+## Technologies
+
+### Application Stack
+- **Language:** Java 21 (Eclipse Temurin)
+- **Framework:** Spring Boot 3.5.8
+- **Build Tool:** Gradle 8.12.1
+- **Testing:** JUnit 5.12.2
+
+### DevOps Tools
+- **Version Control:** Git 2.43.0
+- **CI/CD:** GitHub Actions
+- **Containerization:** 
+  - Docker 28.5.1
+  - Docker Compose v2.40.2
+- **Container Registry:** GitHub Container Registry (GHCR)
+- **Security Scanning:** Trivy Action 0.33.1 (SARIF format)
+
+### Infrastructure
+- **Cloud Platform:** AWS
+  - EC2: t3.micro (Amazon Linux 2023)
+  - Region: us-east-1
+- **IaC:** Terraform 1.0.0+ (AWS Provider 6.23.0)
+- **AWS CLI:** 2.31.18
+
+### Monitoring
+- **Metrics:** Prometheus (latest fetched)
+- **Visualization:** Grafana (latest fetched)
+
+
+
 
 ## Project Structure
 
-The project follows the standard Gradle directory structure:
+The project follows following structure:
 
 ```
 AlgoBench/
-├── src/
-│   ├── main/
-│   │   └── java/ 
-│   │       └── ie/
-│   │           └── ronanodea/
-│   │               └── algobench/
-│   │                   ├── BenchmarkConfig.java
-│   │                   ├── BenchmarkRunner.java
-│   │                   ├── Benchmarker.java
-│   │                   ├── BenchmarkResultsPrinter.java
-│   │                   ├── BubbleSort.java
-│   │                   ├── BucketSort.java
-│   │                   ├── CommandLineParser.java
-│   │                   ├── CSVExporter.java
-│   │                   ├── InsertionSort.java
-│   │                   ├── Main.java
-│   │                   ├── MergeSort.java
-│   │                   └── SelectionSort.java
-│   └── test/
-│       └── java/  
-│           └── ie/
-│               └── ronanodea/
-│                   └── algobench/
-│                       ├── BubbleSortTest.java
-│                       ├── BucketSortTest.java
-│                       ├── CommandLineParserTest.java
-│                       ├── InsertionSortTest.java
-│                       ├── MergeSortTest.java
-│                       └── SelectionSortTest.java
-├── build.gradle 
-├── gradlew
-├── gradlew.bat
-└── gradle/
-    └── wrapper/
-        ├── gradle-wrapper.jar
-        └── gradle-wrapper.properties
+|   .dockerignore
+|   .gitattributes
+|   .gitignore
+|   build.gradle.kts
+|   docker-compose.yml
+|   Dockerfile
+|   gradle.properties
+|   gradlew
+|   gradlew.bat
+|   LICENSE
+|   README.md
+|   settings.gradle
+|
++---.devcontainer
+|       devcontainer.json
+|
++---.github
+|   \---workflows
+|           ci.yml
+|           deploy.yml
+|
++---gradle
+|   |   libs.versions.toml
+|   |
+|   \---wrapper
+|           gradle-wrapper.jar
+|           gradle-wrapper.properties
+|
++---monitoring
+|       docker-compose.yml
+|       prometheus.yml
+|
++---src
+|   +---main
+|   |   +---java
+|   |   |   \---ie
+|   |   |       \---ronanodea
+|   |   |           \---algobench
+|   |   |               |   BenchmarkConfig.java
+|   |   |               |   Benchmarker.java
+|   |   |               |   BenchmarkResultsPrinter.java
+|   |   |               |   BenchmarkRunner.java
+|   |   |               |   BubbleSort.java
+|   |   |               |   BucketSort.java
+|   |   |               |   CommandLineParser.java
+|   |   |               |   CSVExporter.java
+|   |   |               |   InsertionSort.java
+|   |   |               |   Main.java
+|   |   |               |   MergeSort.java
+|   |   |               |   SelectionSort.java
+|   |   |               |
+|   |   |               \---controller
+|   |   |                       BenchmarkController.java
+|   |   |
+|   |   \---resources
+|   |       |   application.properties
+|   |       |
+|   |       \---static
+|   |               index.html
+|   |
+|   \---test
+|       \---java
+|           \---ie
+|               \---ronanodea
+|                   \---algobench
+|                           BubbleSortTest.java
+|                           BucketSortTest.java
+|                           CommandLineParserTest.java
+|                           InsertationSortTest.java
+|                           MergeSortTest.java
+|                           SelectionSortTest.java
+|
+\---terraform
+        .gitignore
+        ec2.tf
+        main.tf
+        outputs.tf
+        security-group.tf
+        user-data.sh
+        variables.tf
+```
+_______________________________________
+
+## Quick Start
+Prerequisites
+
+- Git 2.43.0+
+- Docker 28.5.1+
+- AWS Account (for cloud deployment)
+- GitHub Account (for CI/CD)
+
+## Option 1: Dev Container in VSCode (Recommended)
+```bash
+# Clone repository
+git clone https://github.com/RODea-L00203120/DevOps_SWE_Pipeline.git
+cd DevOps_SWE_Pipeline
+
+### Open in VS Code
+code .
+
+# When prompted, click "Reopen in Container"
+# Container auto-builds on startup via postCreateCommand
 ```
 
-## Implemented Algorithms
+What you get in container:
 
-- **Bubble Sort** - Simple comparison-based algorithm with O(n²) average complexity
-- **Selection Sort** - In-place comparison sort with O(n²) complexity in all cases
-- **Insertion Sort** - Simple sorting algorithm that builds the sorted array one item at a time
-- **Merge Sort** - Divide and conquer algorithm with O(n log n) complexity
-- **Bucket Sort** - Distribution sort that distributes elements into buckets, then sorts each bucket
+- Java 21 (Eclipse Temurin)
+- Gradle Wrapper pre-configured
+- Docker-in-Docker
+- GitHub CLI
+- AWS CLI
+- Terraform
+- VSCode extensions
 
-## Prerequisites
 
-- Java Development Kit (JDK) 17 or later: This project is set up to use JDK 17+. You can download a JDK from Adoptium or your preferred JDK vendor. Make sure java and javac are on your PATH.
-- Git: Used to clone the project.
+## Option 2: Local Development
+```bash
+# Clone repository
+git clone https://github.com/RODea-L00203120/DevOps_SWE_Pipeline.git
+cd DevOps_SWE_Pipeline
 
-## Cloning the Repository
+# Build
+./gradlew build
 
-To get a copy of this project on your local machine, open a terminal (or Git Bash on Windows) and run:
+# Run locally
+./gradlew bootRun
+
+# Access application
+http://localhost:8080
+```
+
+## Deploy to AWS
+
+**1. Configure GitHub Secrets** (Settings → Secrets and variables → Actions):
+```
+AWS_ACCESS_KEY_ID=<your-key>
+AWS_SECRET_ACCESS_KEY=<your-secret>
+AWS_REGION=us-east-1
+```
+
+**2. Build Pipeline (Automatic):**
+
+The CI pipeline runs automatically when you push to main:
 
 ```bash
-git clone https://github.com/RonanChrisODea/Algorithm-Benchmarking-Project.git
-cd Algorithm-Benchmarking-Project
+git push origin main
+```
+This will:
+
+Build and test the application
+Run security scans
+Push Docker image to GitHub Container Registry
+
+**3. Deploy to AWS (Manual):**
+
+Note: Deployment to AWS infrastructure is manual only for safety and cost control. The CI pipeline prepares the container, but you control when infrastructure is provisioned.
+
+Via GitHub Actions UI:
+
+Navigate to: Actions → Deploy → Run workflow
+
+Select action from dropdown:
+- plan - Preview infrastructure changes (no modifications)
+- apply - Deploy/update infrastructure
+- destroy - Tear down all AWS resources
+
+
+
+**4. Get Your Application URL:**
+
+Via GitHub Actions:
+
+Navigate to: Actions → Deploy → Latest workflow run
+Scroll to bottom of logs for Terraform outputs
+
+or 
+
+Via Terraform CLI (in dev container):
+```bash
+cd terraform
+terraform output application_url
+terraform output public_ip
 ```
 
-## Building and Running the Application
-
-This project uses the Gradle Wrapper. You do not need to install Gradle separately. The wrapper will automatically download and use the correct version of Gradle for this project.
-
-### Using the Terminal (Recommended)
-
-1. Navigate to the project root: Open a terminal and use the `cd` command to navigate to the AlgoBench directory (the directory containing gradlew.bat).
-
-2. Build and Run: Execute the following command:
-
-   **Windows:**
-   ```
-   .\gradlew.bat clean build run
-   ```
-
-   **Linux/macOS:**
-   ```
-   ./gradlew clean build run
-   ```
-
-3. To run with specific arguments:
-
-   **Windows:**
-   ```
-   .\gradlew.bat run --args="-r 5 -min -100 -max 100 -s 100,1000,10000"
-   ```
-
-   **Linux/macOS:**
-   ```
-   ./gradlew run --args="-r 5 -min -100 -max 100 -s 100,1000,10000"
-   ```
-
-### Command Line Arguments
-
+**Expected Output:**
 ```
-Options:
-  -r, --repetitions <num>  Number of repetitions for each benchmark (default: 10)
-  -min, --min-value <num>  Minimum value for random arrays (default: 0)
-  -max, --max-value <num>  Maximum value for random arrays (default: 100)
-  -s, --sizes <s1,s2,...>  Comma-separated list of array sizes to benchmark
-  -h, --help               Display this help message
+application_url = "http://<YOUR_IP>:8080"
+public_ip = "<YOUR_IP>"
 ```
 
-## Running Tests
+**5. Access Deployed Services:**
 
-Run all tests using the Gradle test task:
+Application: http://<YOUR_IP>:8080
 
-**Windows:**
-```
-.\gradlew.bat test
-```
+Prometheus: http://<YOUR_IP>:9090
 
-**Linux/macOS:**
-```
+Grafana: http://<YOUR_IP>:3000 (admin/admin)
+
+**6. View GitHub Actions Pipeline Artifacts**
+
+- Navigate to: Actions → CI Pipeline → Select a workflow run
+- Scroll to Artifacts section at bottom of page
+
+Available Artifacts:
+
+application-jar - Compiled Spring Boot JAR file
+
+test-results - JUnit test reports (HTML format)
+
+trivy-sarif-report - Trivy security scan results (SARIF format)
+
+## Additional local running options
+Note: The CI Github Actions workflow runs the majority of these commands automatically however should be developing locally you can use:
+
+Test the Pipeline
+```bash
+# Run tests
 ./gradlew test
 ```
 
-This will compile the code, run all the unit tests, and generate a test report.
-
-View the Test Report: After the tests run, open the HTML test report in your browser, found at the following directories:
-
-- Windows: `.\build\reports\tests\test\index.html`
-- Linux/macOS: `build/reports/tests/test/index.html`
-
-<!-- Removed Javadoc section as it hasn't been implemented yet -->
-
-## Using an IDE (IntelliJ IDEA, Eclipse, etc.)
-
-### Import the Project:
-
-- **IntelliJ IDEA**: Choose "Open" and select the build.gradle file or the project's root directory. IntelliJ IDEA will automatically detect the Gradle project.
-- **Eclipse**: Choose "File" -> "Import..." -> "Gradle" -> "Existing Gradle Project". Select the project's root directory.
-- **Other IDEs**: Use their appropriate "Import Project" feature for Gradle projects.
-
-### Run the Application:
-
-- **IntelliJ IDEA**: Right-click on the Main.java file and select "Run 'Main.main()'".
-- **Eclipse**: Right-click on the Main.java file, go to "Run As" -> "Java Application".
-
-### Run Tests:
-
-- **IntelliJ IDEA**: Right-click on the src/test directory in the Project tool window and choose "Run 'All Tests'". You can also right-click on individual test classes or methods and run them.
-- **Eclipse**: Right-click on the project, go to "Run As" -> "JUnit Test". You can also configure run configurations for specific tests.
-
-## Example Output
-
+### Build Docker image locally
+```bash
+docker build -t algobench:test .
 ```
-Starting benchmarks with multithreading...
-
-Array Size:   10           100          500          1000         2000         5000         10000        20000        
-Bubble:       0.003940     0.039781     0.955040     3.771350     15.062731    93.688522    374.619005   1496.287141
-Selection:    0.002193     0.022174     0.537114     1.825235     7.522413     46.926317    187.712514   750.840124
-Insertion:    0.001846     0.018670     0.453048     1.731123     6.638221     41.489542    166.017842   664.035219
-Merge:        0.003081     0.028914     0.172844     0.390219     0.872182     2.391001     5.103912     11.242184
-Bucket:       0.006721     0.041522     0.204717     0.421093     0.902381     2.481824     5.302183     11.592918
-
-Algorithm completion times:
-Merge: 3.71 seconds
-Bucket: 3.83 seconds
-Insertion: 54.61 seconds
-Selection: 62.81 seconds
-Bubble: 105.33 seconds
-
-Real world elapsed time: 105.33s
-
-Results exported to: benchmark_results_20250417_120145.csv
+### Run container
+```bash
+docker run -p 8080:8080 algobench:test
 ```
 
-## Performance Characteristics
-
-| Algorithm     | Best Case    | Average Case | Worst Case   | Space Complexity | Stable |
-|---------------|--------------|--------------|--------------|------------------|--------|
-| Bubble Sort   | O(n)         | O(n²)        | O(n²)        | O(1)             | Yes    |
-| Selection Sort| O(n²)        | O(n²)        | O(n²)        | O(1)             | No     |
-| Insertion Sort| O(n)         | O(n²)        | O(n²)        | O(1)             | Yes    |
-| Merge Sort    | O(n log n)   | O(n log n)   | O(n log n)   | O(n)             | Yes    |
-| Bucket Sort   | O(n+k)       | O(n+k)       | O(n²)        | O(n+k)           | Yes    |
-
-## Features
-
-- **Configurable Benchmarks** - Customize array sizes, number of repetitions, and value ranges
-- **Multithreaded Execution** - Parallel benchmarking for faster results
-- **Statistical Analysis** - Averages over multiple runs for reliable measurements
-- **CSV Export** - Exports results to CSV files for further analysis or visualization
-- **Command-Line Interface** - Run benchmarks with custom parameters via CLI
-
-## Cleaning the Build
-
-To remove all generated files (compiled classes, test reports, etc.), run:
-
-**Windows:**
-```
-.\gradlew.bat clean
+### Test endpoints
+```bash
+curl http://localhost:8080/actuator/health
+curl http://localhost:8080/api/benchmark/bubblesort?size=100
 ```
 
-**Linux/macOS:**
+### Verify Infrastructure (Dev Container)
+```bash
+# Validate Terraform configuration
+cd terraform
+terraform init
+terraform validate
+terraform plan
 ```
-./gradlew clean
+### Check AWS deployment status
+```bash
+aws ec2 describe-instances --filters "Name=tag:Name,Values=algobench-instance"
 ```
 
-## Future Improvements
 
-- Add more sorting algorithms (QuickSort, HeapSort, RadixSort, etc.)
-- Implement visualization of sorting algorithms and benchmark results
-- Add memory usage measurements
-- Improve statistical analysis with standard deviation and confidence intervals
-- Support for different data distributions (already sorted, reversed, nearly sorted)
+## Destroy Resources
+Via GitHub Actions UI:
 
-## Author
+Navigate to: Actions → Deploy → Run workflow
+Select destroy from action dropdown
+Click Run workflow
 
-Ronan O'Dea
+Via Terraform CLI (in dev container):
+```bash
+cd terraform
+terraform destroy -var="docker_image=ghcr.io/rodea-l00203120/devops_swe_pipeline:latest"
+```
+
+__________________________________
+
+
+
+
+## Pipeline Development Phase 1: Version Control & Dev Container
+
+**Implementation:**
+
+- Cloned my original Algobench repo: 
+
+https://github.com/RonanChrisODea/Algorithm-Benchmarking-Project to Pipeline repository
+
+- Created GitHub repository with proper `.gitignore` for Java/Gradle projects
+
+- Implemented feature branch workflow - will introduce V1.0 tag once application fully functional - tag system for subsequent updates.
+
+- A devcontainer was designed for portability - main dev env run in container; using Linux VM as further isolated development environment. 
+
+```json
+{
+  "name": "DevOps Pipeline - Java 21 Temurin",
+  "image": "eclipse-temurin:21-jdk",
+  
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "vscjava.vscode-gradle",
+        "ms-azuretools.vscode-docker",
+        "github.vscode-github-actions"
+      ]
+    }
+  },
+  
+  "postCreateCommand": "chmod +x gradlew && ./gradlew build",
+  
+  "remoteUser": "root"
+}
+```
+
+### Landing page: 
+
+![alt text](screenshots/image2.png)
+
+## Pipeline Phase 2: Application Finalisation
+
+https://github.com/RODea-L00203120/DevOps_SWE_Pipeline/tree/feature/rest-api
+
+Added a Spring Boot REST API, providing:
+
+- Web-based landing page
+
+- REST endpoints for algorithm operations
+
+- Actuator endpoints for health checks and metrics
+
+- Prometheus metrics endpoint for monitoring           integration added retrospectively
+
+## Pipeline Phase 3: Automated Builds & Testing
+
+- Gradle build system - was incorporated with original repo but automation was implemented though GitHub Actions:
+
+https://github.com/RODea-L00203120/DevOps_SWE_Pipeline/blob/main/.github/workflows/ci.yml
+
+- JUnit 5 test framework Unit Tests for alogrithms included - test reports included as build artifact
+
+https://github.com/RODea-L00203120/DevOps_SWE_Pipeline/tree/main/src/test/java/ie/ronanodea/algobench
+
+### Pipeline Phase 4: Static Analysis and Security Scanning
+
+- Container vunerability scanning implemented via Trivy GitHub Actions module: 
+
+https://github.com/aquasecurity/trivy-action
+
+- Build will not push container to Registry if High/Critical vunerabilities detected
+
+```yaml
+    - name: Build Docker image for scanning
+      run: docker build -t ${{ steps.image.outputs.name }} .
+
+    - name: Run Trivy vulnerability scanner (SARIF)
+      id: trivy-sarif
+      uses: aquasecurity/trivy-action@0.28.0
+      continue-on-error: true
+      with:
+        image-ref: '${{ steps.image.outputs.name }}'
+        format: 'sarif'
+        output: '${{ github.workspace }}/trivy-results.sarif'
+        severity: 'CRITICAL,HIGH'
+        ignore-unfixed: true
+
+    - name: Upload SARIF as artifact
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: trivy-sarif-report
+        path: '${{ github.workspace }}/trivy-results.sarif'
+
+    - name: Upload Trivy results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v4
+      if: always()
+      with:
+        sarif_file: '${{ github.workspace }}/trivy-results.sarif'
+        category: 'trivy-container-scan'
+
+    - name: Run Trivy vulnerability scanner (Table - Quality Gate)
+      id: trivy-table
+      uses: aquasecurity/trivy-action@0.28.0
+      continue-on-error: true
+      with:
+        image-ref: '${{ steps.image.outputs.name }}'
+        format: 'table'
+        severity: 'CRITICAL,HIGH'
+        ignore-unfixed: true
+        exit-code: '1'
+
+    - name: Check vulnerability scan results
+      if: steps.trivy-table.outcome == 'failure'
+      run: |
+        echo "CRITICAL or HIGH vulnerabilities found!"
+        echo "Check the scan output above for details."
+        exit 1
+```
+
+- Initially found vunerabilities related to Apache Tomcat - solved via updating SpringBoot Version - so it worked as intended.
+
+![alt text](screenshots/image.png)
+
+
+## Phase 5: Application Containerisation for Deployment
+
+**CI Pipeline Jobs orchestrated:** 
+
+https://github.com/RODea-L00203120/DevOps_SWE_Pipeline/blob/main/.github/workflows/ci.yml
+
+1. **build-and-test** - Compiles application and produces JAR file
+2. **security-scan** - Builds Docker image, scans with Trivy
+3. **docker-build-push** - Builds and pushes Docker image to GHCR
+
+### Build Details Example via GitHub Actions.
+
+Note the container wasn't pushed to registry as it didn't occur on main branch. 
+
+![alt text](screenshots/image3.png)
+
+## Phase 6: Deployment to Cloud (AWS EC2) managed via Terraform
+
+- Seperate deploy workflow for GitHub Actions which pulls latest container from GitHub Container Registry
+
+https://github.com/RODea-L00203120/DevOps_SWE_Pipeline/blob/main/.github/workflows/deploy.yml
+
+```yaml
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Terraform action to perform'
+        type: choice
+        options: [plan, apply, destroy]
+        required: true
+        default: apply
+
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Plan
+        run: terraform plan -var="docker_image=ghcr.io/rodea-l00203120/devops_swe_pipeline:latest" -out=tfplan
+
+      - name: Terraform Apply
+        if: github.event.inputs.action == 'apply'
+        run: terraform apply -auto-approve tfplan
+
+      - name: Terraform Destroy
+        if: github.event.inputs.action == 'destroy'
+        run: terraform destroy -var="docker_image=ghcr.io/rodea-l00203120/devops_swe_pipeline:latest" -auto-approve
+
+      - name: Output Infrastructure Details
+        if: github.event.inputs.action == 'apply'
+        run: |
+          echo "## Deployment Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          terraform output -json | jq -r 'to_entries[] | "- **\(.key)**: \(.value.value)"' >> $GITHUB_STEP_SUMMARY
+```
+
+Secrets configured using GitHub GUI
+
+![alt text](screenshots/image4.png)
+
+- AWS EC2 (t3.micro) with Elastic IP
+
+![alt text](screenshots/successful_deployment.png)
+
+
+- Terraform Infrastructure as Code used to manage resources 
+
+https://github.com/RODea-L00203120/DevOps_SWE_Pipeline/tree/main/terraform
+
+
+- Manual layer here - human oversight for IaC changes via GitHub actions workflow GUI
+
+![alt text](screenshots/deploy.png)
+
+
+## Phase 7: Monitoring and Logging
+
+- Spring Boot Actuator - exposes application metrics 
+
+(`src/main/resources/application.properties`)
+
+```ini
+management.endpoints.web.exposure.include=health,prometheus,metrics
+management.metrics.export.prometheus.enabled=true
+management.endpoint.health.show-details=always
+server.port=8080
+```
+
+
+- Prometheus - metrics collection and storage open on port:9090
+- Grafana - dashboards and visualisation open on port:3000
+- Default Grafana password can be changed after initial login 
+- Prometheus can be selected as data source via Graphana Interface
+- Dashboard template `4701` JVM micrometer chosen as suitable metric analysis
+
+
+Monitoring software is deployed automatically via the EC2 bootstrap script (`terraform/user-data.sh`) using Docker Compose.
+
+``` bash
+#!/bin/bash
+set -e
+
+DOCKER_IMAGE="${docker_image}"
+APP_PORT="${app_port}"
+
+# Update system and install Docker
+dnf update -y
+dnf install -y docker
+systemctl start docker
+systemctl enable docker
+
+# Wait for Docker to be ready
+sleep 10
+
+# Pull and start the application container
+docker pull "$DOCKER_IMAGE"
+docker stop algobench 2>/dev/null || true
+docker rm algobench 2>/dev/null || true
+docker run -d \
+  --name algobench \
+  --restart unless-stopped \
+  -p "$APP_PORT:8080" \
+  "$DOCKER_IMAGE"
+
+# Install Docker Compose
+echo "Installing Docker Compose..."
+curl -L "https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+
+# Setup monitoring stack
+echo "Setting up monitoring..."
+mkdir -p /home/ec2-user/monitoring
+cd /home/ec2-user/monitoring
+
+cat > docker-compose.yml <<'EOF'
+version: '3.8'
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+    restart: unless-stopped
+
+volumes:
+  prometheus-data:
+  grafana-data:
+EOF
+
+cat > prometheus.yml <<'EOF'
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'algobench'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['172.17.0.1:8080']
+EOF
+
+# Start monitoring stack
+/usr/local/bin/docker-compose up -d
+
+echo "Monitoring setup complete!"
+```
+
+### Demonstration of gathered metric visualisation: 
+
+![alt text](screenshots/metrics.png)
+
+
+_________________________
+
+## A note on variable and secret handling:
+
+## Variable and Secret Management
+
+Sensitive credentials are managed securely and never committed to the repository.
+
+**GitHub Actions Secrets:**
+
+| Secret | Purpose |
+|--------|---------|
+| `AWS_ACCESS_KEY_ID` | AWS authentication |
+| `AWS_SECRET_ACCESS_KEY` | AWS authentication |
+| `GITHUB_TOKEN` | Auto-provided, used for GHCR push |
+
+**Terraform Variables (`terraform/variables.tf`):**
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `aws_region` | AWS deployment region | us-east-1 |
+| `instance_type` | EC2 instance size | t3.micro |
+| `app_port` | Application port | 8080 |
+| `docker_image` | Container image to deploy | ghcr.io/rodea-l00203120/devops_swe_pipeline:latest |
+
+**Variable Injection:**
+- GitHub Actions injects secrets at runtime via `${{ secrets.SECRET_NAME }}`
+- Terraform variables passed via `-var` flag in deploy workflow
+- EC2 user-data variables injected via Terraform templatefile():
+
+``` HCL
+  user_data = templatefile("${path.module}/user-data.sh", {
+    docker_image = var.docker_image
+    app_port     = var.app_port
+  })
+
+```
+
+**Security Notes:**
+- No secrets stored in code
+- `.gitignore` excludes Terraform state files (contain sensitive data)
+- GHCR authentication uses GitHub's built-in `GITHUB_TOKEN`
+
+## To Do:
+
+- Add version tagging from her on - this is version 1.0 - functional and testing but improvements can be made
+
+- Improve VPC and Security Group - Currently open; reduce CIDR block access routes
+
+- Split deploy workflow into seperate plan, apply, destroy workflows for isolation and clarity
+
+- Trivy reports upload but don't display scanned files/vulnerabilities in GitHub Security tab (currently only viewable as artifacts) - fix
+
+- Add more precise benchmark timing and cpu utilisation metrics
+
+- Alter generic landing page template to be more aesthetically pleasing
+
+- Register a domain and point to EC2 instance if economical to maintain for portfolio purposes
+
